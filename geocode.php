@@ -27,8 +27,23 @@ $replacments = array(
     '６' => '6', '７' => '7', '８' => '8', '９' => '9',
     'Ｆ' => 'F', 'Ｂ' => 'B', '－' => '-'
 );
+$monthly = array();
 foreach (glob($config['paths']['data'] . '/requests/*/*/*/*.json') AS $jsonFile) {
     $json = json_decode(file_get_contents($jsonFile), true);
+    foreach ($json AS $k => $v) {
+        if (is_array($v)) {
+            $json[$k] = '';
+        }
+    }
+    $requestTime = strtotime($json['requested_datetime']);
+    $key = date('o-W', $requestTime);
+    if (!isset($monthly[$key])) {
+        $dataPath = __DIR__ . '/data/' . date('o', $requestTime);
+        if (!file_exists($dataPath)) {
+            mkdir($dataPath, 0777, true);
+        }
+        $monthly[$key] = fopen($dataPath . '/' . date('W', $requestTime) . '.csv', 'w');
+    }
     if (is_string($json['address_string']) && empty($json['lat'])) {
         $pos = strpos($json['address_string'], '號');
         if (false !== $pos) {
@@ -81,9 +96,23 @@ foreach (glob($config['paths']['data'] . '/requests/*/*/*/*.json') AS $jsonFile)
             $pos = strpos($content, '{');
             $posEnd = strrpos($content, '}') + 1;
             $jsonResult = json_decode(substr($content, $pos, $posEnd - $pos), true);
-            if(!empty($jsonResult['AddressList'])) {
-                
+            if (isset($jsonResult['AddressList'][0])) {
+                $json['lat'] = $jsonResult['AddressList'][0]['Y'];
+                $json['long'] = $jsonResult['AddressList'][0]['X'];
             }
         }
+    }
+    if (!empty($json['lat'])) {
+        fputcsv($monthly[$key], array(
+            $json['service_request_id'],
+            date('Y-m-d H:i:s', $requestTime),
+            $json['area'],
+            $json['service_name'],
+            $json['subproject'],
+            $json['description'],
+            $json['address_string'],
+            $json['lat'],
+            $json['long'],
+        ));
     }
 }
