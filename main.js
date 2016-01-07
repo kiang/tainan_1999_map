@@ -20,7 +20,7 @@ function initialize() {
 
     map = new google.maps.Map(document.getElementById('map-canvas'), {
         zoom: 12,
-        center: {lat: 22.672925, lng: 120.309465}
+        center: {lat: 23.00, lng: 120.30}
     });
     info = new google.maps.InfoWindow();
     router.init();
@@ -148,7 +148,6 @@ function loadCsv(key) {
         markers[p[0]] = marker;
         bounds.extend(geoPoint);
     });
-    map.fitBounds(bounds);
 }
 
 google.maps.event.addDomListener(window, 'load', initialize);
