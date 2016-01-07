@@ -52,7 +52,7 @@ function initialize() {
     setTimeout(function () {
         if (-1 === currentIndex) {
             currentIndex = 0;
-            loadCsv(weekList[currentIndex]['key']);
+            $('#requestFilter').trigger('change');
         }
     }, 500);
 
@@ -87,11 +87,49 @@ function loadCsv(key) {
         if (currentFilter !== '' && p[3] !== currentFilter) {
             return;
         }
+        var markerIcon = '<span class="map-icon map-icon-health"></span>';
+        switch (p[3]) {
+            case '違規停車':
+                markerIcon = '<span class="map-icon map-icon-car-dealer"></span>';
+                break;
+            case '路燈故障':
+                markerIcon = '<span class="map-icon map-icon-hardware-store"></span>';
+                break;
+            case '噪音舉發':
+                markerIcon = '<span class="map-icon map-icon-liquor-store"></span>';
+                break;
+            case '騎樓舉發':
+                markerIcon = '<span class="map-icon map-icon-place-of-worship"></span>';
+                break;
+            case '道路維修':
+                markerIcon = '<span class="map-icon map-icon-hardware-store"></span>';
+                break;
+            case '交通運輸':
+                markerIcon = '<span class="map-icon map-icon-fire-station"></span>';
+                break;
+            case '髒亂及汙染':
+                markerIcon = '<span class="map-icon map-icon-crosshairs"></span>';
+                break;
+            case '民生管線':
+                markerIcon = '<span class="map-icon map-icon-plumber"></span>';
+                break;
+            case '動物救援':
+                markerIcon = '<span class="map-icon map-icon-pet-store"></span>';
+                break;
+        }
         var geoPoint = (new google.maps.LatLng(parseFloat(p[7]), parseFloat(p[8])));
-        var marker = new google.maps.Marker({
+        var marker = new Marker({
             position: geoPoint,
             map: map,
-            title: p[0]
+            title: p[0],
+            icon: {
+                path: MAP_PIN,
+                fillColor: '#00CCBB',
+                fillOpacity: 1,
+                strokeColor: '',
+                strokeWeight: 0
+            },
+            map_icon_label: markerIcon
         });
         marker.data = p;
         marker.addListener('click', function () {
