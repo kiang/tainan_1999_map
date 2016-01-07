@@ -57,6 +57,9 @@ foreach (glob($config['paths']['data'] . '/requests/*/*/*/*.json') AS $jsonFile)
         }
         ++$weekly[$key]['count'];
     }
+    if ($json['lat'] > 23.413740929 || $json['lat'] < 22.887506857 || $json['long'] > 120.65626753 || $json['long'] < 120.02304376) {
+        $json['lat'] = 0;
+    }
     if (is_string($json['address_string']) && empty($json['lat'])) {
         $pos = strpos($json['address_string'], '號');
         if (false !== $pos) {
