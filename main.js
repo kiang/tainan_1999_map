@@ -85,7 +85,7 @@ function loadCsv(key) {
         });
         marker.data = p;
         marker.addListener('click', function () {
-            var infoText = '<strong>' + this.data[0] + '</strong>';
+            var infoText = '<strong><a href="http://1999.tainan.gov.tw/OpenCaseShow.aspx?FSerialNumber=' + this.data[0] + '" target="_blank">' + this.data[0] + '</a></strong>';
             infoText += '<br />時間: ' + this.data[1];
             infoText += '<br />地區: ' + this.data[2];
             infoText += '<br />分類: ' + this.data[3] + '/' + this.data[4];
