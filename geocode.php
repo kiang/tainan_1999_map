@@ -27,7 +27,7 @@ $replacments = array(
     '６' => '6', '７' => '7', '８' => '8', '９' => '9',
     'Ｆ' => 'F', 'Ｂ' => 'B', '－' => '-'
 );
-$monthly = array();
+$weekly = array();
 foreach (glob($config['paths']['data'] . '/requests/*/*/*/*.json') AS $jsonFile) {
     $json = json_decode(file_get_contents($jsonFile), true);
     foreach ($json AS $k => $v) {
@@ -37,12 +37,25 @@ foreach (glob($config['paths']['data'] . '/requests/*/*/*/*.json') AS $jsonFile)
     }
     $requestTime = strtotime($json['requested_datetime']);
     $key = date('o-W', $requestTime);
-    if (!isset($monthly[$key])) {
+    if (!isset($weekly[$key])) {
         $dataPath = __DIR__ . '/data/' . date('o', $requestTime);
         if (!file_exists($dataPath)) {
             mkdir($dataPath, 0777, true);
         }
-        $monthly[$key] = fopen($dataPath . '/' . date('W', $requestTime) . '.csv', 'w');
+        $weekly[$key] = array(
+            'key' => date('o/W', $requestTime),
+            'fh' => fopen($dataPath . '/' . date('W', $requestTime) . '.csv', 'w'),
+            'begin' => $requestTime,
+            'end' => $requestTime,
+            'count' => 1,
+        );
+    } else {
+        if ($requestTime > $weekly[$key]['end']) {
+            $weekly[$key]['end'] = $requestTime;
+        } elseif ($requestTime < $weekly[$key]['begin']) {
+            $weekly[$key]['begin'] = $requestTime;
+        }
+        ++$weekly[$key]['count'];
     }
     if (is_string($json['address_string']) && empty($json['lat'])) {
         $pos = strpos($json['address_string'], '號');
@@ -77,7 +90,7 @@ foreach (glob($config['paths']['data'] . '/requests/*/*/*/*.json') AS $jsonFile)
                             'oResultDataType' => 'JSON', //回傳的資料格式
                             'oFuzzyBuffer' => '0', //模糊比對回傳門牌號的許可誤差範圍
                             'oIsOnlyFullMatch' => 'false', //是否只進行完全比對
-                            'oIsLockCounty' => 'false', //是否鎖定縣市
+                            'oIsLockCounty' => 'true', //是否鎖定縣市
                             'oIsLockTown' => 'false', //是否鎖定鄉鎮市區
                             'oIsLockVillage' => 'false', //是否鎖定村里
                             'oIsLockRoadSection' => 'false', //是否鎖定路段
@@ -103,7 +116,7 @@ foreach (glob($config['paths']['data'] . '/requests/*/*/*/*.json') AS $jsonFile)
         }
     }
     if (!empty($json['lat'])) {
-        fputcsv($monthly[$key], array(
+        fputcsv($weekly[$key]['fh'], array(
             $json['service_request_id'],
             date('Y-m-d H:i:s', $requestTime),
             $json['area'],
@@ -116,3 +129,13 @@ foreach (glob($config['paths']['data'] . '/requests/*/*/*/*.json') AS $jsonFile)
         ));
     }
 }
+
+$listJson = array();
+krsort($weekly);
+foreach ($weekly AS $week) {
+    unset($week['fh']);
+    $week['begin'] = date('Y-m-d', $week['begin']);
+    $week['end'] = date('Y-m-d', $week['end']);
+    $listJson[] = $week;
+}
+file_put_contents(__DIR__ . '/data/list.json', json_encode($listJson, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
