@@ -1,6 +1,7 @@
 $.ajaxSetup({async: false});
 
 var map, info, bounds, data, currentIndex = -1, loadedData = {}, markers = {}, weekList = [];
+var currentFilter = '';
 $.getJSON('data/list.json', {}, function (p) {
     weekList = p;
 });
@@ -54,6 +55,11 @@ function initialize() {
             loadCsv(weekList[currentIndex]['key']);
         }
     }, 500);
+
+    $('#requestFilter').change(function () {
+        currentFilter = $(this).val();
+        loadCsv(weekList[currentIndex]['key']);
+    });
 }
 
 function loadCsv(key) {
@@ -62,6 +68,7 @@ function loadCsv(key) {
             currentIndex = k;
         }
     }
+    $('#title').html(weekList[currentIndex]['begin'] + ' ~ ' + weekList[currentIndex]['end']);
     window.location.hash = '#' + key;
     if (!loadedData[key]) {
         $.get('data/' + key + '.csv', {}, function (p) {
@@ -77,6 +84,9 @@ function loadCsv(key) {
     }
     markers = {};
     $.each(data, function (k, p) {
+        if (currentFilter !== '' && p[3] !== currentFilter) {
+            return;
+        }
         var geoPoint = (new google.maps.LatLng(parseFloat(p[7]), parseFloat(p[8])));
         var marker = new google.maps.Marker({
             position: geoPoint,
