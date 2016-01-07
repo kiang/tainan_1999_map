@@ -141,6 +141,7 @@ function loadCsv(key) {
             infoText += '<br />描述: ' + this.data[5];
             info.setContent(infoText);
             info.open(map, this);
+            $('#content').html(infoText);
             map.setZoom(15);
             map.setCenter(this.getPosition());
         });
