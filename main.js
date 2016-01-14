@@ -142,7 +142,9 @@ function loadCsv(key) {
             info.setContent(infoText);
             info.open(map, this);
             $('#content').html(infoText);
-            map.setZoom(15);
+            if(map.getZoom() < 15) {
+                map.setZoom(15);
+            }
             map.setCenter(this.getPosition());
         });
         markers[p[0]] = marker;
